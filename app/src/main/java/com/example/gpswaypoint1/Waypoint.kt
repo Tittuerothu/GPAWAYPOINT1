@@ -1,4 +1,8 @@
 package com.example.gpswaypoint1
 
-class Waypoint {
-}
+data class Waypoint(
+    val id: Int,
+    val latitude: Double,
+    val longitude: Double,
+    val name: String
+)

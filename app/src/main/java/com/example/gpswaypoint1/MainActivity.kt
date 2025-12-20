@@ -13,7 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
-import com.example.gpawaypoint1.ui.theme.GPAWAYPOINTTheme
+import com.example.gpswaypoint1.ui.theme.GPSWAYPOINT1Theme
 
 class MainActivity : ComponentActivity() {
 
@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            GPAWAYPOINTTheme {
+            GPSWAYPOINT1Theme {
 
                 val context = LocalContext.current
 
@@ -137,7 +137,7 @@ class MainActivity : ComponentActivity() {
                                 name = "WP $newId"
                             )
                             waypoints = waypoints + wp
-                            selectedWaypointId = newId  // select the new waypoint
+                            selectedWaypointId = newId
                         }
                     },
                     onClearWaypoints = {
@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
                         selectedWaypointId = null
                     },
                     onSelectWaypoint = { id ->
-                        // 🔑 This is the ONLY place selection is changed.
+
                         selectedWaypointId = id
                     },
                     onScaleChange = { newScale ->
