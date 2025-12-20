@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                         val listener = android.location.LocationListener { loc ->
                             currentLocation = loc
 
-                            // ✅ TASK 18: Auto-select previous waypoint within 10 metres
+                            //  Auto-select previous waypoint within 10 metres
                             val selId = selectedWaypointId
                             if (selId != null && waypoints.isNotEmpty()) {
                                 val index = waypoints.indexOfFirst { it.id == selId }
