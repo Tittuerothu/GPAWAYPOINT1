@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
                 var heading by remember { mutableStateOf(0f) }
                 var selectedWaypointId by remember { mutableStateOf<Int?>(null) }
 
-                // Edge distance: 500m .. 2000m
+                // Compass scale: 500m .. 2000m
                 var maxDistanceMeters by remember { mutableStateOf(500f) }
 
                 var orientationSensor: OrientationSensor? by remember { mutableStateOf(null) }
@@ -66,9 +66,11 @@ class MainActivity : ComponentActivity() {
                     waypoints = WaypointStorage.loadWaypoints(context)
                 }
 
-                // Save waypoints whenever they change & clean selection if needed
+                // Save waypoints whenever they change
                 LaunchedEffect(waypoints) {
                     WaypointStorage.saveWaypoints(context, waypoints)
+
+                    // Remove selection if waypoint no longer exists
                     val sel = selectedWaypointId
                     if (sel != null && waypoints.none { it.id == sel }) {
                         selectedWaypointId = null
@@ -80,6 +82,24 @@ class MainActivity : ComponentActivity() {
                     DisposableEffect("gps") {
                         val listener = android.location.LocationListener { loc ->
                             currentLocation = loc
+
+                            // ✅ TASK 18: Auto-select previous waypoint within 10 metres
+                            val selId = selectedWaypointId
+                            if (selId != null && waypoints.isNotEmpty()) {
+                                val index = waypoints.indexOfFirst { it.id == selId }
+
+                                if (index > 0) { // previous waypoint exists
+                                    val currentWp = waypoints[index]
+                                    val distance = distanceMeters(
+                                        loc.latitude, loc.longitude,
+                                        currentWp.latitude, currentWp.longitude
+                                    )
+
+                                    if (distance <= 10f) {
+                                        selectedWaypointId = waypoints[index - 1].id
+                                    }
+                                }
+                            }
                         }
 
                         try {
@@ -145,7 +165,6 @@ class MainActivity : ComponentActivity() {
                         selectedWaypointId = null
                     },
                     onSelectWaypoint = { id ->
-
                         selectedWaypointId = id
                     },
                     onScaleChange = { newScale ->

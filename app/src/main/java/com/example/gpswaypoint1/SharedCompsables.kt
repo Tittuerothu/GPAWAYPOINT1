@@ -39,33 +39,35 @@ fun RootScreenPlaceholder(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
 
+        // App title
         Text(
             text = "GPS Waypoint App",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
 
+        // Location info
         Text(
             text = currentLocation?.let {
                 "Lat: %.5f | Lon: %.5f".format(it.latitude, it.longitude)
-            } ?: "Waiting for GPS...",
-            style = MaterialTheme.typography.bodyMedium
+            } ?: "Waiting for GPS signal...",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.DarkGray
         )
 
+        // Heading
         Text(
             text = "Heading: %.1f°".format(heading),
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.DarkGray
         )
-
-        // (Optional) debug: show selected ID
-        // Text("DEBUG selectedWaypointId = ${selectedWaypointId ?: "none"}")
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Compass with waypoints + touch + pinch zoom
+        // Compass
         Compass(
             heading = heading,
             currentLocation = currentLocation,
@@ -77,99 +79,105 @@ fun RootScreenPlaceholder(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
-        // Scale label (edge distance)
+        // Scale info
         Text(
-            text = "Scale: edge = %.0f m".format(maxDistanceMeters),
+            text = "Compass scale: %.0f metres".format(maxDistanceMeters),
             style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Action buttons
         Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Button(onClick = onToggleTracking) {
+            Button(
+                onClick = onToggleTracking,
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(if (tracking) "Stop Tracking" else "Start Tracking")
             }
+
             Button(
                 onClick = onAddWaypoint,
-                enabled = tracking && currentLocation != null
+                enabled = tracking && currentLocation != null,
+                modifier = Modifier.weight(1f)
             ) {
                 Text("Add Waypoint")
             }
+
             Button(
                 onClick = { showClearDialog = true },
-                enabled = waypoints.isNotEmpty()
+                enabled = waypoints.isNotEmpty(),
+                modifier = Modifier.weight(1f)
             ) {
-                Text("Clear")
+                Text("Clear All")
             }
         }
 
-        // Selected waypoint info
+        // Selected waypoint details
         val selected = waypoints.find { it.id == selectedWaypointId }
         if (selected != null) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Selected: ${selected.name}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFE3F2FD), RoundedCornerShape(10.dp))
+                    .padding(10.dp)
+            ) {
+                Text(
+                    text = "Selected Waypoint",
+                    fontWeight = FontWeight.Bold
+                )
+                Text(text = selected.name)
 
-            if (currentLocation != null) {
-                val dist = distanceMeters(
-                    currentLocation.latitude, currentLocation.longitude,
-                    selected.latitude, selected.longitude
-                )
-                val bearing = bearingToWaypoint(
-                    currentLocation.latitude, currentLocation.longitude,
-                    selected.latitude, selected.longitude
-                )
-                Text("Distance to waypoint: %.1f m".format(dist))
-                Text("Direction to waypoint: %.1f°".format(bearing))
-            } else {
-                Text("Waiting for GPS fix to show distance and direction...")
+                if (currentLocation != null) {
+                    val dist = distanceMeters(
+                        currentLocation.latitude, currentLocation.longitude,
+                        selected.latitude, selected.longitude
+                    )
+                    val bearing = bearingToWaypoint(
+                        currentLocation.latitude, currentLocation.longitude,
+                        selected.latitude, selected.longitude
+                    )
+                    Text("Distance: %.1f m".format(dist))
+                    Text("Direction: %.1f°".format(bearing))
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
+        // Waypoints list title
         Text(
             text = "Waypoints (${waypoints.size})",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
 
-        // Scrollable list
+        // Waypoints list
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(waypoints) { wp ->
-                val distText = currentLocation?.let { loc ->
-                    val d = distanceMeters(
-                        loc.latitude, loc.longitude,
-                        wp.latitude, wp.longitude
-                    )
-                    " – %.1f m".format(d)
-                } ?: ""
-
                 val isSelected = wp.id == selectedWaypointId
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            if (isSelected) Color(0xFFCCE5FF) else Color(0xFFF0F0F0),
-                            RoundedCornerShape(8.dp)
+                            if (isSelected) Color(0xFFBBDEFB) else Color(0xFFF5F5F5),
+                            RoundedCornerShape(10.dp)
                         )
                         .clickable { onSelectWaypoint(wp.id) }
-                        .padding(8.dp)
+                        .padding(10.dp)
                 ) {
                     Text(
-                        text = "${wp.name} (${wp.latitude}, ${wp.longitude})$distText",
+                        text = wp.name,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
@@ -177,25 +185,19 @@ fun RootScreenPlaceholder(
         }
     }
 
-    // Clear confirmation dialog
+    // Confirmation dialog
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            title = {
-                Text("Clear waypoints?")
-            },
-            text = {
-                Text("Are you sure you want to delete all waypoints? This action cannot be undone.")
-            },
+            title = { Text("Clear all waypoints?") },
+            text = { Text("This will permanently delete all saved waypoints.") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         showClearDialog = false
                         onClearWaypoints()
                     }
-                ) {
-                    Text("Yes, clear")
-                }
+                ) { Text("Yes") }
             },
             dismissButton = {
                 TextButton(onClick = { showClearDialog = false }) {
